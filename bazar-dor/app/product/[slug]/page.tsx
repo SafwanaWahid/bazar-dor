@@ -55,7 +55,6 @@ function formatNumber(value: number) {
 function BreadcrumbChevron() {
   return (
     <svg
-      xmlns="http://www.w3.org/2000/svg"
       width="16"
       height="16"
       viewBox="0 0 24 24"
@@ -86,12 +85,10 @@ function PriceSummary({
   return (
     <div className="rounded-2xl border border-[#e0e8e1] bg-[#fcfefc] px-4 py-4">
       <p className="text-[13px] text-[#68756c]">{label}</p>
-
       <p className={`mt-1 text-xl font-bold ${color}`}>
         {formatNumber(value)}
         <span className="ml-1 text-sm font-medium">টাকা</span>
       </p>
-
       <p className="mt-1 text-[12px] leading-5 text-[#68756c]">
         {description}
       </p>
@@ -107,7 +104,6 @@ function DetailsSkeleton() {
       aria-label="পণ্যের বিস্তারিত লোড হচ্ছে"
     >
       <div className="h-5 w-56 rounded bg-[#e5ece6]" />
-
       <div className="flex items-center gap-4 rounded-2xl border border-[#e0e8e1] bg-[#fcfefc] p-6">
         <div className="h-16 w-16 rounded-xl bg-[#e5ece6]" />
         <div className="flex-1">
@@ -115,23 +111,15 @@ function DetailsSkeleton() {
           <div className="mt-3 h-4 w-28 rounded bg-[#e5ece6]" />
         </div>
       </div>
-
       <div className="rounded-2xl border border-[#e0e8e1] bg-[#fcfefc] p-5">
         <div className="grid gap-3 sm:grid-cols-3">
           {Array.from({ length: 3 }, (_, index) => (
-            <div
-              key={index}
-              className="h-24 rounded-xl bg-[#e5ece6]"
-            />
+            <div key={index} className="h-24 rounded-xl bg-[#e5ece6]" />
           ))}
         </div>
-
         <div className="mt-6 space-y-3">
           {Array.from({ length: 8 }, (_, index) => (
-            <div
-              key={index}
-              className="h-10 rounded bg-[#e5ece6]"
-            />
+            <div key={index} className="h-10 rounded bg-[#e5ece6]" />
           ))}
         </div>
       </div>
@@ -150,10 +138,7 @@ export default function ProductDetailsPage() {
   useEffect(() => {
     const controller = new AbortController();
     let cancelled = false;
-
-    const timeout = window.setTimeout(() => {
-      controller.abort();
-    }, 25000);
+    const timeout = window.setTimeout(() => controller.abort(), 25000);
 
     async function loadProduct() {
       setLoading(true);
@@ -168,7 +153,6 @@ export default function ProductDetailsPage() {
 
         if (!response.ok) {
           const details = await response.json().catch(() => null);
-
           throw new Error(
             details?.error || "পণ্যের তথ্য লোড করা যায়নি।"
           );
@@ -184,9 +168,7 @@ export default function ProductDetailsPage() {
           (item) => item.slug === slug
         );
 
-        if (!cancelled) {
-          setProduct(selected ?? null);
-        }
+        if (!cancelled) setProduct(selected ?? null);
       } catch (error) {
         if (!cancelled) {
           setError(
@@ -199,10 +181,7 @@ export default function ProductDetailsPage() {
         }
       } finally {
         window.clearTimeout(timeout);
-
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
     }
 
@@ -231,7 +210,6 @@ export default function ProductDetailsPage() {
           className="rounded-2xl border border-[#e0e8e1] bg-[#fcfefc] px-5 py-10 text-center"
         >
           <p className="text-[#253128]">{error}</p>
-
           <button
             type="button"
             onClick={() => setAttempt((current) => current + 1)}
@@ -250,10 +228,9 @@ export default function ProductDetailsPage() {
         <h1 className="text-xl font-semibold text-[#253128]">
           পণ্যটি পাওয়া যায়নি।
         </h1>
-
         <Link
           href="/"
-          className="mt-4 inline-block text-[#008b3e] hover:underline"
+          className="mt-4 inline-block rounded-lg bg-[#008b3e] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#007734]"
         >
           হোম পেজে ফিরে যান
         </Link>
@@ -309,9 +286,9 @@ export default function ProductDetailsPage() {
 
   const changeColor =
     product.change.dir === "up"
-      ? "text-[#ef4444]"
+      ? "text-[#16a34a]"
       : product.change.dir === "down"
-        ? "text-[#16a34a]"
+        ? "text-[#ef4444]"
         : "text-[#758078]";
 
   const changeIcon =
@@ -330,18 +307,14 @@ export default function ProductDetailsPage() {
         <Link href="/" className="hover:text-[#008b3e]">
           হোম
         </Link>
-
         <BreadcrumbChevron />
-
         <Link
           href={`/category/${product.category}`}
           className="hover:text-[#008b3e]"
         >
           {product.categoryNameBn}
         </Link>
-
         <BreadcrumbChevron />
-
         <span aria-current="page">{product.nameBn}</span>
       </nav>
 
@@ -350,16 +323,13 @@ export default function ProductDetailsPage() {
           <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-[#f0f5f1] text-4xl">
             {product.image}
           </div>
-
           <div>
             <h1 className="text-2xl leading-9 font-bold text-[#253128] sm:text-3xl">
               {product.nameBn}
             </h1>
-
             <p className="mt-1 text-sm text-[#68756c]">
               প্রতি {unit} · {product.categoryNameBn}
             </p>
-
             <p className="mt-2 text-[13px] leading-6 text-[#39443b]">
               {comparison}
             </p>
@@ -367,18 +337,13 @@ export default function ProductDetailsPage() {
         </div>
 
         <div className="self-start rounded-2xl bg-[#f0f5f1] px-5 py-4 text-center sm:shrink-0">
-          <p className="text-[12px] text-[#68756c]">
-            আজকের দাম
-          </p>
-
+          <p className="text-[12px] text-[#68756c]">আজকের দাম</p>
           <p className="mt-1 text-3xl font-bold text-[#253128]">
             {formatNumber(product.today)}
           </p>
-
           <p className="mt-1 text-[12px] text-[#68756c]">
             টাকা / {unit}
           </p>
-
           <p className={`mt-1 text-[12px] font-semibold ${changeColor}`}>
             {changeIcon}{" "}
             {changeFormatter.format(Math.abs(product.change.pct))}%
@@ -399,14 +364,12 @@ export default function ProductDetailsPage() {
               description={`${minimumMarket.market}, ${minimumMarket.division}`}
               color="text-[#16a34a]"
             />
-
             <PriceSummary
               label="সর্বাধিক দাম"
               value={maximumMarket.max}
               description={`${maximumMarket.market}, ${maximumMarket.division}`}
               color="text-[#ef4444]"
             />
-
             <PriceSummary
               label="গড় দাম"
               value={averagePrice}
@@ -430,7 +393,6 @@ export default function ProductDetailsPage() {
               <caption className="sr-only">
                 {product.nameBn}-এর বাজারভিত্তিক দাম, প্রতি {unit}
               </caption>
-
               <thead className="bg-[#f8fbf8] text-[13px] text-[#68756c]">
                 <tr>
                   <th scope="col" className="px-4 py-3 font-medium">
@@ -450,32 +412,24 @@ export default function ProductDetailsPage() {
                   </th>
                 </tr>
               </thead>
-
               <tbody>
                 {markets.map((market) => (
                   <tr
                     key={`${market.division}-${market.market}`}
                     className="border-t border-[#dce5dd] odd:bg-[#fcfefc] even:bg-[#f0f5f1]"
                   >
-                    <th
-                      scope="row"
-                      className="px-4 py-3 font-normal"
-                    >
+                    <th scope="row" className="px-4 py-3 font-normal">
                       {market.market}
                     </th>
-
                     <td className="px-4 py-3 text-[#68756c]">
                       {market.division}
                     </td>
-
                     <td className="px-4 py-3 text-right whitespace-nowrap">
                       {formatNumber(market.min)} টাকা
                     </td>
-
                     <td className="px-4 py-3 text-right whitespace-nowrap">
                       {formatNumber(market.max)} টাকা
                     </td>
-
                     <td className="px-4 py-3 text-right font-semibold whitespace-nowrap">
                       {formatNumber(market.average)} টাকা
                     </td>

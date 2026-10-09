@@ -55,7 +55,6 @@ const changeFormatter = new Intl.NumberFormat("bn-BD", {
 function BreadcrumbChevron() {
   return (
     <svg
-      xmlns="http://www.w3.org/2000/svg"
       width="16"
       height="16"
       viewBox="0 0 24 24"
@@ -77,9 +76,9 @@ function ProductCard({ product }: { product: Product }) {
 
   const changeStyle =
     direction === "up"
-      ? "bg-[#fff1ef] text-[#ef4444]"
+      ? "bg-[#edf7ef] text-[#16a34a]"
       : direction === "down"
-        ? "bg-[#edf7ef] text-[#16a34a]"
+        ? "bg-[#fff1ef] text-[#ef4444]"
         : "bg-[#f0f3f1] text-[#758078]";
 
   const changeIcon =
@@ -94,12 +93,10 @@ function ProductCard({ product }: { product: Product }) {
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#f0f5f1] text-[28px]">
           {product.image}
         </div>
-
         <div className="min-w-0">
           <h2 className="text-base leading-6 font-semibold text-[#253128] group-hover:text-[#008b3e]">
             {product.nameBn}
           </h2>
-
           <p className="text-[13px] leading-5 text-[#68756c]">
             {unitLabels[product.unit] || `প্রতি ${product.unit}`}
           </p>
@@ -111,7 +108,6 @@ function ProductCard({ product }: { product: Product }) {
           <p className="text-[12px] leading-5 text-[#768079]">
             আজকের দাম
           </p>
-
           <p className="text-xl leading-7 font-bold text-[#253128]">
             {numberFormatter.format(product.today)}
             <span className="ml-1 text-sm font-normal">টাকা</span>
@@ -134,19 +130,16 @@ function ProductSkeleton() {
     <div className="animate-pulse rounded-2xl border border-[#e0e8e1] bg-[#fcfefc] p-4">
       <div className="flex items-center gap-3">
         <div className="h-12 w-12 shrink-0 rounded-xl bg-[#edf2ee]" />
-
         <div>
           <div className="h-4 w-24 rounded bg-[#edf2ee]" />
           <div className="mt-2 h-3 w-16 rounded bg-[#edf2ee]" />
         </div>
       </div>
-
       <div className="mt-3 flex items-end justify-between">
         <div>
           <div className="h-3 w-16 rounded bg-[#edf2ee]" />
           <div className="mt-2 h-5 w-20 rounded bg-[#edf2ee]" />
         </div>
-
         <div className="h-6 w-16 rounded-full bg-[#edf2ee]" />
       </div>
     </div>
@@ -168,10 +161,7 @@ export default function CategoryPage() {
 
     const controller = new AbortController();
     let cancelled = false;
-
-    const timeout = window.setTimeout(() => {
-      controller.abort();
-    }, 25000);
+    const timeout = window.setTimeout(() => controller.abort(), 25000);
 
     async function loadProducts() {
       setLoading(true);
@@ -185,7 +175,6 @@ export default function CategoryPage() {
 
         if (!response.ok) {
           const details = await response.json().catch(() => null);
-
           throw new Error(
             details?.error || "পণ্যের দাম লোড করা যায়নি।"
           );
@@ -197,9 +186,7 @@ export default function CategoryPage() {
           throw new Error("পণ্যের তথ্য সঠিক ফরম্যাটে পাওয়া যায়নি।");
         }
 
-        if (!cancelled) {
-          setProducts(data);
-        }
+        if (!cancelled) setProducts(data);
       } catch (error) {
         if (!cancelled) {
           setError(
@@ -212,10 +199,7 @@ export default function CategoryPage() {
         }
       } finally {
         window.clearTimeout(timeout);
-
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
     }
 
@@ -248,10 +232,9 @@ export default function CategoryPage() {
         <h1 className="text-xl font-semibold text-[#253128]">
           এই ক্যাটাগরি পাওয়া যায়নি।
         </h1>
-
         <Link
           href="/"
-          className="mt-4 inline-block text-[#008b3e] hover:underline"
+          className="mt-4 inline-block rounded-lg bg-[#008b3e] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#007734]"
         >
           হোম পেজে ফিরে যান
         </Link>
@@ -268,9 +251,7 @@ export default function CategoryPage() {
         <Link href="/" className="hover:text-[#008b3e]">
           হোম
         </Link>
-
         <BreadcrumbChevron />
-
         <span aria-current="page">{category.name}</span>
       </nav>
 
@@ -279,12 +260,10 @@ export default function CategoryPage() {
           <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[#e1f3e7] text-4xl">
             {category.icon}
           </span>
-
           <div>
             <h1 className="text-2xl leading-9 font-bold text-[#253128] sm:text-3xl">
               {category.name}-এর আজকের বাজারদর
             </h1>
-
             <p className="mt-1 text-sm leading-6 text-[#768079]">
               পণ্যের বর্তমান দাম ও দামের পরিবর্তন দেখুন।
             </p>
@@ -298,7 +277,6 @@ export default function CategoryPage() {
             <h2 className="text-xl font-semibold text-[#253128]">
               সব পণ্য
             </h2>
-
             {!loading && !error && (
               <span className="rounded-full bg-[#e5efe7] px-3 py-1 text-[13px] text-[#58715f]">
                 {numberFormatter.format(visibleProducts.length)}টি পণ্য
@@ -313,7 +291,6 @@ export default function CategoryPage() {
             >
               সাজান:
             </label>
-
             <select
               id="price-sort"
               value={sortOrder}
@@ -335,7 +312,6 @@ export default function CategoryPage() {
             className="rounded-2xl border border-[#e0e8e1] bg-[#fcfefc] px-5 py-10 text-center"
           >
             <p className="text-[#253128]">{error}</p>
-
             <button
               type="button"
               onClick={() => setAttempt((current) => current + 1)}
@@ -361,8 +337,16 @@ export default function CategoryPage() {
             ))}
           </div>
         ) : (
-          <div className="rounded-2xl border border-[#e0e8e1] bg-[#fcfefc] px-5 py-10 text-center text-[#68756c]">
-            এই ক্যাটাগরিতে কোনো পণ্য পাওয়া যায়নি।
+          <div className="rounded-2xl border border-[#e0e8e1] bg-[#fcfefc] px-5 py-10 text-center">
+            <p className="text-[#68756c]">
+              এই ক্যাটাগরিতে কোনো পণ্য পাওয়া যায়নি।
+            </p>
+            <Link
+              href="/"
+              className="mt-4 inline-block rounded-lg bg-[#008b3e] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#007734]"
+            >
+              হোম পেজে ফিরে যান
+            </Link>
           </div>
         )}
       </section>

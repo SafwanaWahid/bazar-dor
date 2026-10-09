@@ -22,8 +22,6 @@ type Product = {
   };
 };
 
-const API_URL = "/api/products";
-
 const unitLabels: Record<string, string> = {
   kg: "প্রতি কেজি",
   litre: "প্রতি লিটার",
@@ -49,14 +47,8 @@ function formatChange(value: number) {
 }
 
 function getChangeStyle(direction: Product["change"]["dir"]) {
-  if (direction === "up") {
-    return "bg-[#fff1ef] text-[#ef4444]";
-  }
-
-  if (direction === "down") {
-    return "bg-[#edf7ef] text-[#16a34a]";
-  }
-
+  if (direction === "up") return "bg-[#edf7ef] text-[#16a34a]";
+  if (direction === "down") return "bg-[#fff1ef] text-[#ef4444]";
   return "bg-[#f0f3f1] text-[#758078]";
 }
 
@@ -76,7 +68,6 @@ function ProductCard({ product }: { product: Product }) {
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#f0f5f1] text-[28px]">
           {product.image}
         </div>
-
         <div className="min-w-0">
           <h3 className="text-base leading-6 font-semibold text-[#253128] group-hover:text-[#008b3e]">
             {product.nameBn}
@@ -119,7 +110,6 @@ function ProductSkeleton() {
           <div className="mt-2 h-3 w-16 rounded bg-[#edf2ee]" />
         </div>
       </div>
-
       <div className="mt-3 flex items-end justify-between">
         <div>
           <div className="h-3 w-16 rounded bg-[#edf2ee]" />
@@ -147,7 +137,7 @@ function ProductSection({
       <h2 className="mb-3 flex items-center gap-2 text-xl font-semibold text-[#253128]">
         <span
           className={`text-sm ${
-            direction === "up" ? "text-[#ef4444]" : "text-[#16a34a]"
+            direction === "up" ? "text-[#16a34a]" : "text-[#ef4444]"
           }`}
         >
           {direction === "up" ? "▲" : "▼"}
@@ -237,17 +227,14 @@ export default function Home() {
   useEffect(() => {
     const controller = new AbortController();
     let cancelled = false;
-
-    const timeout = window.setTimeout(() => {
-      controller.abort();
-    }, 25000);
+    const timeout = window.setTimeout(() => controller.abort(), 25000);
 
     async function loadProducts() {
       setLoading(true);
       setError("");
 
       try {
-        const response = await fetch(API_URL, {
+        const response = await fetch("/api/products", {
           signal: controller.signal,
           cache: "no-store",
         });
@@ -255,34 +242,30 @@ export default function Home() {
         if (!response.ok) {
           const details = await response.json().catch(() => null);
           throw new Error(
-            details?.error || `API request failed: ${response.status}`
+            details?.error || "পণ্যের দাম লোড করা যায়নি।"
           );
         }
 
         const data = await response.json();
 
         if (!Array.isArray(data)) {
-          throw new Error("Invalid product data");
+          throw new Error("পণ্যের তথ্য সঠিক ফরম্যাটে পাওয়া যায়নি।");
         }
 
-        if (!cancelled) {
-          setProducts(data);
-        }
+        if (!cancelled) setProducts(data);
       } catch (error) {
         if (!cancelled) {
-          console.error("Failed to load products:", error);
           setError(
             controller.signal.aborted
               ? "সার্ভার থেকে উত্তর পেতে বেশি সময় লাগছে। আবার চেষ্টা করুন।"
-              : "পণ্যের দাম লোড করা যায়নি। আবার চেষ্টা করুন।"
+              : error instanceof Error
+                ? error.message
+                : "পণ্যের দাম লোড করা যায়নি।"
           );
         }
       } finally {
         window.clearTimeout(timeout);
-
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
     }
 
