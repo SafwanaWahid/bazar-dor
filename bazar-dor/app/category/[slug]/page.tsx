@@ -52,6 +52,26 @@ const changeFormatter = new Intl.NumberFormat("bn-BD", {
   maximumFractionDigits: 1,
 });
 
+function BreadcrumbChevron() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className="shrink-0"
+    >
+      <path d="m9 6 6 6-6 6" />
+    </svg>
+  );
+}
+
 function ProductCard({ product }: { product: Product }) {
   const direction = product.change.dir;
 
@@ -79,6 +99,7 @@ function ProductCard({ product }: { product: Product }) {
           <h2 className="text-base leading-6 font-semibold text-[#253128] group-hover:text-[#008b3e]">
             {product.nameBn}
           </h2>
+
           <p className="text-[13px] leading-5 text-[#68756c]">
             {unitLabels[product.unit] || `প্রতি ${product.unit}`}
           </p>
@@ -90,6 +111,7 @@ function ProductCard({ product }: { product: Product }) {
           <p className="text-[12px] leading-5 text-[#768079]">
             আজকের দাম
           </p>
+
           <p className="text-xl leading-7 font-bold text-[#253128]">
             {numberFormatter.format(product.today)}
             <span className="ml-1 text-sm font-normal">টাকা</span>
@@ -99,7 +121,8 @@ function ProductCard({ product }: { product: Product }) {
         <span
           className={`mb-0.5 shrink-0 rounded-full px-2.5 py-1 text-[12px] leading-4 font-semibold ${changeStyle}`}
         >
-          {changeIcon} {changeFormatter.format(Math.abs(product.change.pct))}%
+          {changeIcon}{" "}
+          {changeFormatter.format(Math.abs(product.change.pct))}%
         </span>
       </div>
     </Link>
@@ -110,7 +133,8 @@ function ProductSkeleton() {
   return (
     <div className="animate-pulse rounded-2xl border border-[#e0e8e1] bg-[#fcfefc] p-4">
       <div className="flex items-center gap-3">
-        <div className="h-12 w-12 rounded-xl bg-[#edf2ee]" />
+        <div className="h-12 w-12 shrink-0 rounded-xl bg-[#edf2ee]" />
+
         <div>
           <div className="h-4 w-24 rounded bg-[#edf2ee]" />
           <div className="mt-2 h-3 w-16 rounded bg-[#edf2ee]" />
@@ -122,6 +146,7 @@ function ProductSkeleton() {
           <div className="h-3 w-16 rounded bg-[#edf2ee]" />
           <div className="mt-2 h-5 w-20 rounded bg-[#edf2ee]" />
         </div>
+
         <div className="h-6 w-16 rounded-full bg-[#edf2ee]" />
       </div>
     </div>
@@ -144,7 +169,9 @@ export default function CategoryPage() {
     const controller = new AbortController();
     let cancelled = false;
 
-    const timeout = window.setTimeout(() => controller.abort(), 25000);
+    const timeout = window.setTimeout(() => {
+      controller.abort();
+    }, 25000);
 
     async function loadProducts() {
       setLoading(true);
@@ -158,6 +185,7 @@ export default function CategoryPage() {
 
         if (!response.ok) {
           const details = await response.json().catch(() => null);
+
           throw new Error(
             details?.error || "পণ্যের দাম লোড করা যায়নি।"
           );
@@ -169,7 +197,9 @@ export default function CategoryPage() {
           throw new Error("পণ্যের তথ্য সঠিক ফরম্যাটে পাওয়া যায়নি।");
         }
 
-        if (!cancelled) setProducts(data);
+        if (!cancelled) {
+          setProducts(data);
+        }
       } catch (error) {
         if (!cancelled) {
           setError(
@@ -182,7 +212,10 @@ export default function CategoryPage() {
         }
       } finally {
         window.clearTimeout(timeout);
-        if (!cancelled) setLoading(false);
+
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
 
@@ -196,15 +229,9 @@ export default function CategoryPage() {
   }, [attempt, category]);
 
   const visibleProducts = useMemo(() => {
-    const filtered = products.filter((product) => {
-      const categorySlug = product.category?.trim().toLowerCase();
-
-      return (
-        categorySlug === slug ||
-        product.categoryNameBn === category?.name ||
-        (slug === "dim-dui" && categorySlug === "dim-dudh")
-      );
-    });
+    const filtered = products.filter(
+      (product) => product.category === slug
+    );
 
     if (sortOrder === "low") {
       filtered.sort((a, b) => a.today - b.today);
@@ -213,7 +240,7 @@ export default function CategoryPage() {
     }
 
     return filtered;
-  }, [products, slug, category, sortOrder]);
+  }, [products, slug, sortOrder]);
 
   if (!category) {
     return (
@@ -221,6 +248,7 @@ export default function CategoryPage() {
         <h1 className="text-xl font-semibold text-[#253128]">
           এই ক্যাটাগরি পাওয়া যায়নি।
         </h1>
+
         <Link
           href="/"
           className="mt-4 inline-block text-[#008b3e] hover:underline"
@@ -235,15 +263,15 @@ export default function CategoryPage() {
     <div className="site-container pt-6 pb-12">
       <nav
         aria-label="ব্রেডক্রাম্ব"
-        className="mb-5 flex items-center gap-2 text-sm text-[#768079]"
+        className="mb-5 flex items-center gap-3 text-sm leading-6 text-[#253128]"
       >
         <Link href="/" className="hover:text-[#008b3e]">
           হোম
         </Link>
-        <span aria-hidden="true">/</span>
-        <span aria-current="page" className="text-[#253128]">
-          {category.name}
-        </span>
+
+        <BreadcrumbChevron />
+
+        <span aria-current="page">{category.name}</span>
       </nav>
 
       <section className="rounded-[22px] border border-[#e0e8e1] bg-[#fcfefc] px-5 py-6 sm:px-7">
@@ -256,6 +284,7 @@ export default function CategoryPage() {
             <h1 className="text-2xl leading-9 font-bold text-[#253128] sm:text-3xl">
               {category.name}-এর আজকের বাজারদর
             </h1>
+
             <p className="mt-1 text-sm leading-6 text-[#768079]">
               পণ্যের বর্তমান দাম ও দামের পরিবর্তন দেখুন।
             </p>
@@ -284,6 +313,7 @@ export default function CategoryPage() {
             >
               সাজান:
             </label>
+
             <select
               id="price-sort"
               value={sortOrder}
@@ -305,6 +335,7 @@ export default function CategoryPage() {
             className="rounded-2xl border border-[#e0e8e1] bg-[#fcfefc] px-5 py-10 text-center"
           >
             <p className="text-[#253128]">{error}</p>
+
             <button
               type="button"
               onClick={() => setAttempt((current) => current + 1)}
