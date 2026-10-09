@@ -81,7 +81,6 @@ function ProductCard({ product }: { product: Product }) {
           <h3 className="text-base leading-6 font-semibold text-[#253128] group-hover:text-[#008b3e]">
             {product.nameBn}
           </h3>
-
           <p className="text-[13px] leading-5 text-[#68756c]">
             {unitLabels[product.unit] || `প্রতি ${product.unit}`}
           </p>
@@ -93,7 +92,6 @@ function ProductCard({ product }: { product: Product }) {
           <p className="text-[12px] leading-5 text-[#768079]">
             আজকের দাম
           </p>
-
           <p className="text-xl leading-7 font-bold text-[#253128]">
             {formatNumber(product.today)}
             <span className="ml-1 text-sm font-normal">টাকা</span>
@@ -101,9 +99,7 @@ function ProductCard({ product }: { product: Product }) {
         </div>
 
         <span
-          className={`mb-0.5 shrink-0 rounded-full px-2.5 py-1 text-[12px] leading-4 font-semibold ${getChangeStyle(
-            product.change.dir
-          )}`}
+          className={`mb-0.5 shrink-0 rounded-full px-2.5 py-1 text-[12px] leading-4 font-semibold ${getChangeStyle(product.change.dir)}`}
         >
           {getChangeIcon(product.change.dir)}{" "}
           {formatChange(product.change.pct)}%
@@ -118,7 +114,6 @@ function ProductSkeleton() {
     <div className="animate-pulse rounded-2xl border border-[#e0e8e1] bg-[#fcfefc] p-4">
       <div className="flex items-center gap-3">
         <div className="h-12 w-12 shrink-0 rounded-xl bg-[#edf2ee]" />
-
         <div>
           <div className="h-4 w-24 rounded bg-[#edf2ee]" />
           <div className="mt-2 h-3 w-16 rounded bg-[#edf2ee]" />
@@ -130,7 +125,6 @@ function ProductSkeleton() {
           <div className="h-3 w-16 rounded bg-[#edf2ee]" />
           <div className="mt-2 h-5 w-20 rounded bg-[#edf2ee]" />
         </div>
-
         <div className="h-6 w-16 rounded-full bg-[#edf2ee]" />
       </div>
     </div>
@@ -163,7 +157,7 @@ function ProductSection({
 
       {loading ? (
         <div
-          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
           aria-busy="true"
           aria-label="পণ্যের দাম লোড হচ্ছে"
         >
@@ -172,7 +166,7 @@ function ProductSection({
           ))}
         </div>
       ) : products.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
@@ -260,7 +254,6 @@ export default function Home() {
 
         if (!response.ok) {
           const details = await response.json().catch(() => null);
-
           throw new Error(
             details?.error || `API request failed: ${response.status}`
           );
@@ -278,7 +271,6 @@ export default function Home() {
       } catch (error) {
         if (!cancelled) {
           console.error("Failed to load products:", error);
-
           setError(
             controller.signal.aborted
               ? "সার্ভার থেকে উত্তর পেতে বেশি সময় লাগছে। আবার চেষ্টা করুন।"
@@ -355,7 +347,6 @@ export default function Home() {
           <h2 className="text-lg font-semibold text-[#253128]">
             {error}
           </h2>
-
           <button
             type="button"
             onClick={() => setAttempt((current) => current + 1)}
@@ -386,7 +377,6 @@ export default function Home() {
                 <h2 className="text-xl font-semibold text-[#253128]">
                   সব পণ্য
                 </h2>
-
                 <p className="mt-1 text-sm text-[#768079]">
                   প্রয়োজনীয় সব পণ্যের আজকের দাম এক জায়গায় দেখুন।
                 </p>
@@ -401,16 +391,16 @@ export default function Home() {
 
             {loading ? (
               <div
-                className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
                 aria-busy="true"
                 aria-label="সব পণ্য লোড হচ্ছে"
               >
-                {Array.from({ length: 8 }, (_, index) => (
+                {Array.from({ length: 9 }, (_, index) => (
                   <ProductSkeleton key={index} />
                 ))}
               </div>
             ) : products.length > 0 ? (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {products.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
