@@ -1,32 +1,33 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import toast from "react-hot-toast";
+import { authClient } from "@/lib/auth-client";
+
+type AuthFormProps = {
+  mode: "signin" | "signup";
+};
 
 function GoogleIcon() {
   return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      className="shrink-0"
-    >
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
       <path
         fill="#4285F4"
-        d="M21.6 12.23c0-.71-.06-1.39-.18-2.05H12v3.88h5.38a4.6 4.6 0 0 1-2 3.02v2.51h3.24c1.9-1.75 2.98-4.33 2.98-7.36Z"
+        d="M21.6 12.23c0-.71-.06-1.39-.18-2.05H12v3.88h5.38a4.6 4.6 0 0 1-2 3.02v2.51h3.24c1.89-1.74 2.98-4.3 2.98-7.36Z"
       />
       <path
         fill="#34A853"
-        d="M12 22c2.7 0 4.96-.9 6.62-2.41l-3.24-2.51c-.9.6-2.05.96-3.38.96-2.6 0-4.8-1.76-5.59-4.12H3.06v2.59A10 10 0 0 0 12 22Z"
+        d="M12 22c2.7 0 4.96-.9 6.62-2.41l-3.24-2.51c-.9.6-2.05.96-3.38.96-2.6 0-4.8-1.76-5.59-4.12H3.07v2.59A10 10 0 0 0 12 22Z"
       />
       <path
         fill="#FBBC05"
-        d="M6.41 13.92A6 6 0 0 1 6.1 12c0-.67.11-1.32.31-1.92V7.49H3.06A10 10 0 0 0 2 12c0 1.61.38 3.14 1.06 4.51l3.35-2.59Z"
+        d="M6.41 13.92a6 6 0 0 1 0-3.84V7.49H3.07a10 10 0 0 0 0 9.02l3.34-2.59Z"
       />
       <path
         fill="#EA4335"
-        d="M12 5.96c1.47 0 2.79.51 3.83 1.51l2.87-2.87A9.6 9.6 0 0 0 12 2a10 10 0 0 0-8.94 5.49l3.35 2.59C7.2 7.72 9.4 5.96 12 5.96Z"
+        d="M12 5.96c1.47 0 2.79.51 3.83 1.51l2.87-2.87A9.6 9.6 0 0 0 12 2a10 10 0 0 0-8.93 5.49l3.34 2.59C7.2 7.72 9.4 5.96 12 5.96Z"
       />
     </svg>
   );
@@ -35,230 +36,279 @@ function GoogleIcon() {
 function GithubIcon() {
   return (
     <svg
-      width="16"
-      height="16"
+      width="20"
+      height="20"
       viewBox="0 0 24 24"
       fill="currentColor"
       aria-hidden="true"
-      className="shrink-0"
     >
-      <path d="M12 .75a11.25 11.25 0 0 0-3.56 21.92c.56.1.77-.24.77-.54v-2.1c-3.13.68-3.79-1.33-3.79-1.33-.51-1.3-1.25-1.64-1.25-1.64-1.02-.7.08-.69.08-.69 1.13.08 1.73 1.16 1.73 1.16 1 1.72 2.63 1.22 3.27.93.1-.73.39-1.22.71-1.5-2.5-.29-5.13-1.25-5.13-5.56 0-1.23.44-2.24 1.16-3.03-.12-.28-.5-1.43.11-2.98 0 0 .94-.3 3.09 1.16a10.76 10.76 0 0 1 5.62 0c2.15-1.46 3.09-1.16 3.09-1.16.61 1.55.23 2.7.11 2.98.72.79 1.16 1.8 1.16 3.03 0 4.32-2.63 5.27-5.14 5.55.4.35.76 1.03.76 2.08v3.1c0 .3.21.65.78.54A11.25 11.25 0 0 0 12 .75Z" />
+      <path d="M12 .75a11.25 11.25 0 0 0-3.56 21.92c.56.1.77-.24.77-.54v-2.1c-3.13.68-3.79-1.33-3.79-1.33-.51-1.3-1.25-1.65-1.25-1.65-1.02-.7.08-.69.08-.69 1.13.08 1.72 1.16 1.72 1.16 1 1.72 2.63 1.22 3.27.93.1-.73.39-1.22.71-1.5-2.5-.28-5.13-1.25-5.13-5.56 0-1.23.44-2.23 1.16-3.02-.12-.28-.5-1.43.11-2.98 0 0 .94-.3 3.09 1.15A10.7 10.7 0 0 1 12 6.16c.96 0 1.92.13 2.82.38 2.15-1.45 3.09-1.15 3.09-1.15.61 1.55.23 2.7.11 2.98.72.79 1.16 1.79 1.16 3.02 0 4.32-2.63 5.27-5.14 5.55.4.35.76 1.03.76 2.08v3.11c0 .3.21.65.78.54A11.25 11.25 0 0 0 12 .75Z" />
     </svg>
   );
 }
 
 const inputClass =
-  "mt-1.5 w-full rounded-lg border border-[#e0e8e1] bg-[#fcfefc] px-3 py-2.5 text-sm text-[#253128] placeholder:text-[#768079] outline-none transition-colors focus:border-[#008b3e] focus:ring-2 focus:ring-[#008b3e]/15";
+  "mt-2 w-full rounded-xl border border-[#dfe7e1] bg-white px-4 py-3 text-sm text-[#202b22] outline-none transition focus:border-[#008b3e] focus:ring-2 focus:ring-[#008b3e]/10 disabled:opacity-60";
 
-const socialButtonClass =
-  "flex min-h-11 cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-[#e0e8e1] bg-[#fcfefc] px-3 py-2 text-[13px] font-semibold whitespace-nowrap text-[#253128]";
-
-export default function AuthForm({
-  mode,
-}: {
-  mode: "signin" | "signup";
-}) {
+export default function AuthForm({ mode }: AuthFormProps) {
+  const router = useRouter();
   const isSignup = mode === "signup";
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function showError(message: string) {
+    setError(message);
+    toast.error(message);
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (busy) return;
+
     setError("");
 
-    const data = new FormData(event.currentTarget);
-    const name = String(data.get("name") ?? "").trim();
-    const password = String(data.get("password") ?? "");
-    const confirmation = String(data.get("confirmPassword") ?? "");
+    const cleanEmail = email.trim();
 
-    if (isSignup && !name) {
-      setError("আপনার নাম লিখুন।");
+    if (isSignup && !name.trim()) {
+      showError("আপনার নাম লিখুন।");
       return;
     }
 
-    if (isSignup && password !== confirmation) {
-      setError("পাসওয়ার্ড দুটি মিলছে না। আবার লিখুন।");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      showError("সঠিক ইমেইল ঠিকানা লিখুন।");
       return;
     }
 
-    setError(
-      isSignup
-        ? "অ্যাকাউন্ট তৈরির সেবা এখনও চালু হয়নি।"
-        : "সাইন ইন সেবা এখনও চালু হয়নি।"
-    );
+    if (password.length < 8 || password.length > 128) {
+      showError("পাসওয়ার্ড ৮ থেকে ১২৮ অক্ষরের মধ্যে হতে হবে।");
+      return;
+    }
+
+    if (isSignup && password !== confirmPassword) {
+      showError("দুটি পাসওয়ার্ড মিলছে না।");
+      return;
+    }
+
+    setBusy(true);
+
+    try {
+      if (isSignup) {
+        const result = await authClient.signUp.email({
+          name: name.trim(),
+          email: cleanEmail,
+          password,
+        });
+
+        if (result.error) {
+          showError(result.error.message || "অ্যাকাউন্ট তৈরি করা যায়নি।");
+          return;
+        }
+
+        toast.success("নিবন্ধন সম্পন্ন হয়েছে। এখন সাইন ইন করুন।");
+        router.push("/signin");
+      } else {
+        const result = await authClient.signIn.email({
+          email: cleanEmail,
+          password,
+          rememberMe: true,
+        });
+
+        if (result.error) {
+          showError(result.error.message || "ইমেইল বা পাসওয়ার্ড সঠিক নয়।");
+          return;
+        }
+
+        toast.success("সফলভাবে সাইন ইন হয়েছে।");
+        router.push("/");
+        router.refresh();
+      }
+    } catch {
+      showError("সার্ভারের সঙ্গে সংযোগ করা যায়নি। আবার চেষ্টা করুন।");
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
-    <div className="site-container py-9 sm:py-10">
-      <div className="mx-auto max-w-[460px]">
+    <section className="flex min-h-[620px] items-center justify-center px-4 py-12 sm:py-16">
+      <div className="w-full max-w-[460px] rounded-2xl border border-[#e3ebe4] bg-white p-6 shadow-sm sm:p-8">
         <div className="text-center">
-          <h1 className="text-2xl leading-9 font-bold text-[#253128]">
-            {isSignup ? "অ্যাকাউন্ট তৈরি করুন" : "সাইন ইন"}
+          <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[#edf7ef] text-2xl">
+            🛒
+          </span>
+
+          <h1 className="mt-4 text-2xl font-bold text-[#202b22]">
+            {isSignup ? "নতুন অ্যাকাউন্ট তৈরি করুন" : "সাইন ইন করুন"}
           </h1>
 
-          <p className="mt-1 text-sm leading-6 text-[#768079]">
+          <p className="mt-2 text-sm text-[#68736b]">
             {isSignup
-              ? "বিনা খরচে সাইন আপ করে সব বিস্তারিত দাম দেখুন।"
-              : "বিস্তারিত দাম, বাজার তুলনা ও প্রোফাইল দেখতে অ্যাকাউন্টে ঢুকুন।"}
+              ? "বাজার দর-এর সঙ্গে যুক্ত হোন"
+              : "বাজার দর-এ আপনাকে স্বাগতম"}
           </p>
         </div>
 
-        <div className="mt-6 rounded-2xl border border-[#e0e8e1] bg-[#fcfefc] p-5 sm:p-6">
-          <form
-            onSubmit={handleSubmit}
-            onChange={() => setError("")}
-            className="space-y-4"
+        <div className="mt-7 grid grid-cols-1 gap-3 min-[480px]:grid-cols-2">
+          <button
+            type="button"
+            disabled
+            title="Google লগইন সেটআপ বাকি"
+            className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[#dfe7e1] px-3 text-[13px] font-medium whitespace-nowrap text-[#303a32] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isSignup && (
-              <div>
-                <label
-                  htmlFor="name"
-                  className="block text-sm font-medium text-[#253128]"
-                >
-                  নাম
-                </label>
+            <GoogleIcon />
+            Google দিয়ে চালিয়ে যান
+          </button>
 
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  autoComplete="name"
-                  placeholder="যেমন: রহিম উদ্দিন"
-                  required
-                  maxLength={100}
-                  className={inputClass}
-                />
-              </div>
-            )}
+          <button
+            type="button"
+            disabled
+            title="GitHub লগইন সেটআপ বাকি"
+            className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[#dfe7e1] px-3 text-[13px] font-medium whitespace-nowrap text-[#303a32] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <GithubIcon />
+            GitHub দিয়ে চালিয়ে যান
+          </button>
+        </div>
 
+        <div className="my-6 flex items-center gap-3">
+          <div className="h-px flex-1 bg-[#e8eee9]" />
+          <span className="text-xs text-[#879188]">অথবা ইমেইল দিয়ে</span>
+          <div className="h-px flex-1 bg-[#e8eee9]" />
+        </div>
+
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          {isSignup && (
             <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-[#253128]"
-              >
-                ইমেইল
+              <label htmlFor="name" className="text-sm font-medium text-[#303a32]">
+                নাম
               </label>
-
               <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                placeholder="you@example.com"
+                id="name"
+                name="name"
+                type="text"
+                autoComplete="name"
+                placeholder="আপনার নাম"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                disabled={busy}
                 required
                 className={inputClass}
               />
             </div>
+          )}
 
+          <div>
+            <label htmlFor="email" className="text-sm font-medium text-[#303a32]">
+              ইমেইল
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              disabled={busy}
+              required
+              className={inputClass}
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="password"
+              className="text-sm font-medium text-[#303a32]"
+            >
+              পাসওয়ার্ড
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete={isSignup ? "new-password" : "current-password"}
+              placeholder="কমপক্ষে ৮ অক্ষর"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              disabled={busy}
+              required
+              className={inputClass}
+            />
+          </div>
+
+          {isSignup && (
             <div>
               <label
-                htmlFor="password"
-                className="block text-sm font-medium text-[#253128]"
+                htmlFor="confirmPassword"
+                className="text-sm font-medium text-[#303a32]"
               >
-                পাসওয়ার্ড
+                পাসওয়ার্ড নিশ্চিত করুন
               </label>
-
               <input
-                id="password"
-                name="password"
+                id="confirmPassword"
+                name="confirmPassword"
                 type="password"
-                autoComplete={
-                  isSignup ? "new-password" : "current-password"
-                }
-                placeholder="কমপক্ষে ৮ অক্ষর"
+                autoComplete="new-password"
+                placeholder="পাসওয়ার্ড আবার লিখুন"
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                disabled={busy}
                 required
-                minLength={isSignup ? 8 : undefined}
                 className={inputClass}
               />
             </div>
+          )}
 
-            {isSignup && (
-              <div>
-                <label
-                  htmlFor="confirmPassword"
-                  className="block text-sm font-medium text-[#253128]"
-                >
-                  পাসওয়ার্ড নিশ্চিত করুন
-                </label>
-
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  placeholder="আবার লিখুন"
-                  required
-                  minLength={8}
-                  className={inputClass}
-                />
-              </div>
-            )}
-
-            {error && (
-              <p
-                role="alert"
-                className="rounded-lg bg-[#fff1ef] px-3 py-2 text-sm leading-6 text-[#dc2626]"
-              >
-                {error}
-              </p>
-            )}
-
-            <button
-              type="submit"
-              className="flex min-h-11 w-full items-center justify-center rounded-lg bg-[#008b3e] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_3px_4px_rgba(0,0,0,0.18)] transition-colors hover:bg-[#007734] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#008b3e]"
+          {error && (
+            <p
+              role="alert"
+              className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600"
             >
-              {isSignup ? "অ্যাকাউন্ট তৈরি করুন" : "সাইন ইন"}
-            </button>
-          </form>
+              {error}
+            </p>
+          )}
 
-          <div className="my-5 flex items-center gap-4">
-            <div className="h-px flex-1 bg-[#e0e8e1]" />
-            <span className="text-xs text-[#68756c]">অথবা</span>
-            <div className="h-px flex-1 bg-[#e0e8e1]" />
-          </div>
-
-          <div className="grid grid-cols-1 gap-2 min-[480px]:grid-cols-2">
-            <button
-              type="button"
-              disabled
-              aria-label="Google দিয়ে সাইন ইন এখনও উপলব্ধ নয়"
-              className={socialButtonClass}
-            >
-              <GoogleIcon />
-              <span>Google দিয়ে চালিয়ে যান</span>
-            </button>
-
-            <button
-              type="button"
-              disabled
-              aria-label="GitHub দিয়ে সাইন ইন এখনও উপলব্ধ নয়"
-              className={socialButtonClass}
-            >
-              <GithubIcon />
-              <span>GitHub দিয়ে চালিয়ে যান</span>
-            </button>
-          </div>
-
-          <p className="mt-4 text-center text-[13px] leading-6 text-[#39443b]">
-            {isSignup ? "অ্যাকাউন্ট আছে? " : "অ্যাকাউন্ট নেই? "}
-
-            <Link
-              href={isSignup ? "/signin" : "/signup"}
-              className="font-medium text-[#008b3e] hover:underline"
-            >
-              {isSignup ? "সাইন ইন করুন" : "সাইন আপ করুন"}
-            </Link>
-          </p>
-        </div>
-
-        <div className="mt-5 text-center">
-          <Link
-            href="/"
-            className="text-[13px] text-[#768079] hover:text-[#008b3e]"
+          <button
+            type="submit"
+            disabled={busy}
+            aria-busy={busy}
+            className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#008b3e] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#007734] disabled:cursor-wait disabled:opacity-70"
           >
-            ← হোম পেজে ফিরে যান
+            {busy && (
+              <span
+                aria-hidden="true"
+                className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"
+              />
+            )}
+            {busy
+              ? "অপেক্ষা করুন..."
+              : isSignup
+                ? "সাইন আপ করুন"
+                : "সাইন ইন করুন"}
+          </button>
+        </form>
+
+        <p className="mt-6 text-center text-sm text-[#68736b]">
+          {isSignup ? "ইতিমধ্যে অ্যাকাউন্ট আছে? " : "অ্যাকাউন্ট নেই? "}
+          <Link
+            href={isSignup ? "/signin" : "/signup"}
+            className="font-semibold text-[#008b3e] hover:underline"
+          >
+            {isSignup ? "সাইন ইন করুন" : "সাইন আপ করুন"}
+          </Link>
+        </p>
+
+        <div className="mt-4 text-center">
+          <Link href="/" className="text-xs text-[#879188] hover:text-[#008b3e]">
+            হোম পেজে ফিরে যান
           </Link>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
