@@ -5,52 +5,16 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import toast from "react-hot-toast";
 import { authClient } from "@/lib/auth-client";
-
-type AuthFormProps = {
-  mode: "signin" | "signup";
-};
-
-function GoogleIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        fill="#4285F4"
-        d="M21.6 12.23c0-.71-.06-1.39-.18-2.05H12v3.88h5.38a4.6 4.6 0 0 1-2 3.02v2.51h3.24c1.89-1.74 2.98-4.3 2.98-7.36Z"
-      />
-      <path
-        fill="#34A853"
-        d="M12 22c2.7 0 4.96-.9 6.62-2.41l-3.24-2.51c-.9.6-2.05.96-3.38.96-2.6 0-4.8-1.76-5.59-4.12H3.07v2.59A10 10 0 0 0 12 22Z"
-      />
-      <path
-        fill="#FBBC05"
-        d="M6.41 13.92a6 6 0 0 1 0-3.84V7.49H3.07a10 10 0 0 0 0 9.02l3.34-2.59Z"
-      />
-      <path
-        fill="#EA4335"
-        d="M12 5.96c1.47 0 2.79.51 3.83 1.51l2.87-2.87A9.6 9.6 0 0 0 12 2a10 10 0 0 0-8.93 5.49l3.34 2.59C7.2 7.72 9.4 5.96 12 5.96Z"
-      />
-    </svg>
-  );
-}
-
-function GithubIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-    >
-      <path d="M12 .75a11.25 11.25 0 0 0-3.56 21.92c.56.1.77-.24.77-.54v-2.1c-3.13.68-3.79-1.33-3.79-1.33-.51-1.3-1.25-1.65-1.25-1.65-1.02-.7.08-.69.08-.69 1.13.08 1.72 1.16 1.72 1.16 1 1.72 2.63 1.22 3.27.93.1-.73.39-1.22.71-1.5-2.5-.28-5.13-1.25-5.13-5.56 0-1.23.44-2.23 1.16-3.02-.12-.28-.5-1.43.11-2.98 0 0 .94-.3 3.09 1.15A10.7 10.7 0 0 1 12 6.16c.96 0 1.92.13 2.82.38 2.15-1.45 3.09-1.15 3.09-1.15.61 1.55.23 2.7.11 2.98.72.79 1.16 1.79 1.16 3.02 0 4.32-2.63 5.27-5.14 5.55.4.35.76 1.03.76 2.08v3.11c0 .3.21.65.78.54A11.25 11.25 0 0 0 12 .75Z" />
-    </svg>
-  );
-}
+import SocialLoginButtons from "@/components/SocialLoginButtons";
 
 const inputClass =
   "mt-2 w-full rounded-xl border border-[#dfe7e1] bg-white px-4 py-3 text-sm text-[#202b22] outline-none transition focus:border-[#008b3e] focus:ring-2 focus:ring-[#008b3e]/10 disabled:opacity-60";
 
-export default function AuthForm({ mode }: AuthFormProps) {
+export default function AuthForm({
+  mode,
+}: {
+  mode: "signin" | "signup";
+}) {
   const router = useRouter();
   const isSignup = mode === "signup";
 
@@ -71,7 +35,6 @@ export default function AuthForm({ mode }: AuthFormProps) {
     if (busy) return;
 
     setError("");
-
     const cleanEmail = email.trim();
 
     if (isSignup && !name.trim()) {
@@ -153,27 +116,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
           </p>
         </div>
 
-        <div className="mt-7 grid grid-cols-1 gap-3 min-[480px]:grid-cols-2">
-          <button
-            type="button"
-            disabled
-            title="Google লগইন সেটআপ বাকি"
-            className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[#dfe7e1] px-3 text-[13px] font-medium whitespace-nowrap text-[#303a32] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <GoogleIcon />
-            Google দিয়ে চালিয়ে যান
-          </button>
-
-          <button
-            type="button"
-            disabled
-            title="GitHub লগইন সেটআপ বাকি"
-            className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[#dfe7e1] px-3 text-[13px] font-medium whitespace-nowrap text-[#303a32] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <GithubIcon />
-            GitHub দিয়ে চালিয়ে যান
-          </button>
-        </div>
+        <SocialLoginButtons disabled={busy} />
 
         <div className="my-6 flex items-center gap-3">
           <div className="h-px flex-1 bg-[#e8eee9]" />
@@ -221,10 +164,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
           </div>
 
           <div>
-            <label
-              htmlFor="password"
-              className="text-sm font-medium text-[#303a32]"
-            >
+            <label htmlFor="password" className="text-sm font-medium text-[#303a32]">
               পাসওয়ার্ড
             </label>
             <input
@@ -285,6 +225,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
                 className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"
               />
             )}
+
             {busy
               ? "অপেক্ষা করুন..."
               : isSignup
@@ -303,11 +244,12 @@ export default function AuthForm({ mode }: AuthFormProps) {
           </Link>
         </p>
 
-        <div className="mt-4 text-center">
-          <Link href="/" className="text-xs text-[#879188] hover:text-[#008b3e]">
-            হোম পেজে ফিরে যান
-          </Link>
-        </div>
+        <Link
+          href="/"
+          className="mt-4 block text-center text-xs text-[#879188] hover:text-[#008b3e]"
+        >
+          হোম পেজে ফিরে যান
+        </Link>
       </div>
     </section>
   );
