@@ -9,9 +9,11 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "better-auth": "^1.7.7",
     "next": "16.4.0",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "react-hot-toast": "^2.6.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
