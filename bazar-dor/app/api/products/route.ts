@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server";
 
-const API_URL =
-  "https://api.api-store.workers.dev/api/bazardor/products";
-
 type Product = {
   id: number;
   slug: string;
@@ -10,20 +7,17 @@ type Product = {
   [key: string]: unknown;
 };
 
+const API_URLS = [
+  "https://openapi.programming-hero.com/api/bazardor/products",
+  "https://api.api-store.workers.dev/api/bazardor/products",
+  "https://api.abcz.workers.dev/api/bazardor/products",
+];
+
 let cachedProducts: Product[] | null = null;
 let cacheExpiresAt = 0;
-let retryAt = 0;
 let pendingRequest: Promise<Product[]> | null = null;
 
-class ProductApiError extends Error {
-  constructor(
-    message: string,
-    public status: number
-  ) {
-    super(message);
-    this.name = "ProductApiError";
-  }
-}
+const retryTimes = new Map<string, number>();
 
 function getRetryDelay(value: string | null) {
   if (!value) return 60000;
@@ -36,80 +30,69 @@ function getRetryDelay(value: string | null) {
 
   const date = Date.parse(value);
 
-  if (Number.isFinite(date)) {
-    return Math.max(date - Date.now(), 1000);
-  }
-
-  return 60000;
+  return Number.isFinite(date)
+    ? Math.max(date - Date.now(), 1000)
+    : 60000;
 }
 
 async function fetchProducts(): Promise<Product[]> {
-  const response = await fetch(API_URL, {
-    cache: "no-store",
-    signal: AbortSignal.timeout(12000),
-  });
+  for (const url of API_URLS) {
+    if (Date.now() < (retryTimes.get(url) ?? 0)) {
+      continue;
+    }
 
-  if (response.status === 429) {
-    retryAt =
-      Date.now() + getRetryDelay(response.headers.get("retry-after"));
+    try {
+      const response = await fetch(url, {
+        cache: "no-store",
+        signal: AbortSignal.timeout(10000),
+      });
 
-    throw new ProductApiError(
-      "পণ্যের সার্ভারে অনুরোধের সীমা পূর্ণ হয়েছে। কিছুক্ষণ পরে চেষ্টা করুন।",
-      429
-    );
+      if (response.status === 429) {
+        retryTimes.set(
+          url,
+          Date.now() +
+            getRetryDelay(response.headers.get("retry-after"))
+        );
+        continue;
+      }
+
+      if (!response.ok) {
+        retryTimes.set(url, Date.now() + 15000);
+        continue;
+      }
+
+      const data: unknown = await response.json();
+
+      if (!Array.isArray(data)) {
+        retryTimes.set(url, Date.now() + 15000);
+        continue;
+      }
+
+      cachedProducts = data as Product[];
+      cacheExpiresAt = Date.now() + 120000;
+      retryTimes.delete(url);
+
+      return cachedProducts;
+    } catch {
+      retryTimes.set(url, Date.now() + 15000);
+    }
   }
 
-  if (!response.ok) {
-    throw new ProductApiError(
-      `Product API returned status ${response.status}`,
-      502
-    );
-  }
-
-  const products = await response.json();
-
-  if (!Array.isArray(products)) {
-    throw new ProductApiError(
-      "Product API returned an unexpected format",
-      502
-    );
-  }
-
-  cachedProducts = products;
-  cacheExpiresAt = Date.now() + 60000;
-  retryAt = 0;
-
-  return products;
+  throw new Error("Both product APIs are temporarily unavailable");
 }
 
-function rateLimitResponse() {
-  const seconds = Math.max(
-    1,
-    Math.ceil((retryAt - Date.now()) / 1000)
-  );
-
-  return NextResponse.json(
-    {
-      error: `সার্ভারে অনুরোধের সীমা পূর্ণ হয়েছে। ${seconds} সেকেন্ড পরে চেষ্টা করুন।`,
-      retryAfter: seconds,
+function productResponse(products: Product[], stale = false) {
+  return NextResponse.json(products, {
+    headers: {
+      "Cache-Control": "no-store",
+      "X-Product-Cache": stale ? "stale" : "fresh",
     },
-    {
-      status: 429,
-      headers: {
-        "Retry-After": String(seconds),
-        "Cache-Control": "no-store",
-      },
-    }
-  );
+  });
 }
 
 export async function GET() {
   if (cachedProducts && Date.now() < cacheExpiresAt) {
-    return NextResponse.json(cachedProducts);
-  }
-
-  if (Date.now() < retryAt) {
-    return rateLimitResponse();
+    return productResponse(cachedProducts);
   }
 
   try {
@@ -121,22 +104,33 @@ export async function GET() {
 
     const products = await pendingRequest;
 
-    return NextResponse.json(products);
-  } catch (error) {
-    if (error instanceof ProductApiError && error.status === 429) {
-      return rateLimitResponse();
+    return productResponse(products);
+  } catch {
+    if (cachedProducts) {
+      return productResponse(cachedProducts, true);
     }
 
-    console.error("Product API request failed:", error);
+    const nextRetry = Math.min(
+      ...API_URLS.map((url) => retryTimes.get(url) ?? Date.now())
+    );
+
+    const seconds = Math.max(
+      1,
+      Math.ceil((nextRetry - Date.now()) / 1000)
+    );
 
     return NextResponse.json(
       {
-        error:
-          error instanceof ProductApiError
-            ? error.message
-            : "পণ্যের সার্ভারের সঙ্গে সংযোগ করা যায়নি।",
+        error: `পণ্যের সার্ভার সাময়িকভাবে ব্যস্ত। ${seconds} সেকেন্ড পরে আবার চেষ্টা করুন।`,
+        retryAfter: seconds,
       },
-      { status: 502 }
+      {
+        status: 503,
+        headers: {
+          "Retry-After": String(seconds),
+          "Cache-Control": "no-store",
+        },
+      }
     );
   }
 }
