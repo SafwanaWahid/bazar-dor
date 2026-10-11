@@ -124,3 +124,6 @@ tries fallback endpoints when necessary.
 ## Assignment
 
 Programming Hero — B14 Assignment 07: Bazar Dor.
+
+Live: https://bazar-dor-one-xi.vercel.app/
+GitHub: https://github.com/SafwanaWahid/bazar-dor
