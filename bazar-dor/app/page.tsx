@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 type Product = {
   id: number;
@@ -32,6 +32,32 @@ const unitLabels: Record<string, string> = {
   pc: "প্রতি পিস",
   hali: "প্রতি হালি",
 };
+
+const dateFormatter = new Intl.DateTimeFormat("bn-BD", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  timeZone: "Asia/Dhaka",
+});
+
+function subscribeToDate(onChange: () => void) {
+  const timer = window.setInterval(onChange, 60000);
+  window.addEventListener("focus", onChange);
+
+  return () => {
+    window.clearInterval(timer);
+    window.removeEventListener("focus", onChange);
+  };
+}
+
+function getDateSnapshot() {
+  return dateFormatter.format(new Date());
+}
+
+function getServerDateSnapshot() {
+  return "আজকের বাজারদর";
+}
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat("bn-BD", {
@@ -68,6 +94,7 @@ function ProductCard({ product }: { product: Product }) {
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#f0f5f1] text-[28px]">
           {product.image}
         </div>
+
         <div className="min-w-0">
           <h3 className="text-base leading-6 font-semibold text-[#253128] group-hover:text-[#008b3e]">
             {product.nameBn}
@@ -110,6 +137,7 @@ function ProductSkeleton() {
           <div className="mt-2 h-3 w-16 rounded bg-[#edf2ee]" />
         </div>
       </div>
+
       <div className="mt-3 flex items-end justify-between">
         <div>
           <div className="h-3 w-16 rounded bg-[#edf2ee]" />
@@ -209,30 +237,24 @@ export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [banglaDate, setBanglaDate] = useState("");
   const [attempt, setAttempt] = useState(0);
 
-  useEffect(() => {
-    setBanglaDate(
-      new Intl.DateTimeFormat("bn-BD", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-        timeZone: "Asia/Dhaka",
-      }).format(new Date())
-    );
-  }, []);
+  const banglaDate = useSyncExternalStore(
+    subscribeToDate,
+    getDateSnapshot,
+    getServerDateSnapshot
+  );
 
   useEffect(() => {
     const controller = new AbortController();
     let cancelled = false;
-    const timeout = window.setTimeout(() => controller.abort(), 25000);
+
+    const timeout = window.setTimeout(
+      () => controller.abort(),
+      25000
+    );
 
     async function loadProducts() {
-      setLoading(true);
-      setError("");
-
       try {
         const response = await fetch("/api/products", {
           signal: controller.signal,
@@ -252,7 +274,9 @@ export default function Home() {
           throw new Error("পণ্যের তথ্য সঠিক ফরম্যাটে পাওয়া যায়নি।");
         }
 
-        if (!cancelled) setProducts(data);
+        if (!cancelled) {
+          setProducts(data);
+        }
       } catch (error) {
         if (!cancelled) {
           setError(
@@ -265,11 +289,14 @@ export default function Home() {
         }
       } finally {
         window.clearTimeout(timeout);
-        if (!cancelled) setLoading(false);
+
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
 
-    loadProducts();
+    void loadProducts();
 
     return () => {
       cancelled = true;
@@ -277,6 +304,12 @@ export default function Home() {
       controller.abort();
     };
   }, [attempt]);
+
+  function retryProducts() {
+    setLoading(true);
+    setError("");
+    setAttempt((current) => current + 1);
+  }
 
   const risers = products
     .filter((product) => product.change.dir === "up")
@@ -294,7 +327,7 @@ export default function Home() {
         <div className="grid items-center gap-5 md:grid-cols-[minmax(0,1fr)_280px]">
           <div>
             <span className="inline-flex rounded-full bg-[#e1f3e7] px-3 py-1 text-[13px] font-medium text-[#008b3e]">
-              {banglaDate || "আজকের বাজারদর"}
+              {banglaDate}
             </span>
 
             <h1 className="mt-3 text-[28px] leading-[1.4] font-bold tracking-tight text-[#253128] sm:text-[34px] lg:text-[36px]">
@@ -330,9 +363,10 @@ export default function Home() {
           <h2 className="text-lg font-semibold text-[#253128]">
             {error}
           </h2>
+
           <button
             type="button"
-            onClick={() => setAttempt((current) => current + 1)}
+            onClick={retryProducts}
             className="mt-5 rounded-lg bg-[#008b3e] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#007734]"
           >
             আবার চেষ্টা করুন

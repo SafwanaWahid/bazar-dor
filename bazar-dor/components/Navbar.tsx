@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import toast from "react-hot-toast";
 import { authClient } from "@/lib/auth-client";
 
@@ -68,6 +68,33 @@ const marketItems = [
   },
 ];
 
+const dateFormatter = new Intl.DateTimeFormat("bn-BD", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  timeZone: "Asia/Dhaka",
+});
+
+function subscribeToDate(onChange: () => void) {
+  const timer = window.setInterval(onChange, 60000);
+
+  window.addEventListener("focus", onChange);
+
+  return () => {
+    window.clearInterval(timer);
+    window.removeEventListener("focus", onChange);
+  };
+}
+
+function getDateSnapshot() {
+  return dateFormatter.format(new Date());
+}
+
+function getServerDateSnapshot() {
+  return "প্রয়োজনীয় পণ্যের দাম এক নজরে";
+}
+
 function MarketItems({ duplicate = false }: { duplicate?: boolean }) {
   return (
     <div
@@ -80,10 +107,13 @@ function MarketItems({ duplicate = false }: { duplicate?: boolean }) {
           className="flex h-9 shrink-0 items-center gap-1.5 px-5 text-[13px] whitespace-nowrap"
         >
           <span>{item.icon}</span>
+
           <span className="text-[#303a32]">{item.name}</span>
+
           <span className="text-[#303a32]">
             {item.price} টাকা/{item.unit}
           </span>
+
           <span
             className={`font-semibold ${
               item.up ? "text-[#16a34a]" : "text-[#ef4444]"
@@ -102,20 +132,13 @@ export default function Navbar() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
 
-  const [banglaDate, setBanglaDate] = useState("");
-  const [signingOut, setSigningOut] = useState(false);
+  const banglaDate = useSyncExternalStore(
+    subscribeToDate,
+    getDateSnapshot,
+    getServerDateSnapshot
+  );
 
-  useEffect(() => {
-    setBanglaDate(
-      new Intl.DateTimeFormat("bn-BD", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-        timeZone: "Asia/Dhaka",
-      }).format(new Date())
-    );
-  }, []);
+  const [signingOut, setSigningOut] = useState(false);
 
   async function handleSignOut() {
     if (signingOut) return;
@@ -157,8 +180,9 @@ export default function Navbar() {
               <p className="text-[21px] leading-6 font-bold tracking-tight text-[#202b22]">
                 বাজার দর
               </p>
+
               <p className="mt-0.5 text-[12px] leading-4 text-[#616b62]">
-                {banglaDate || "প্রয়োজনীয় পণ্যের দাম এক নজরে"}
+                {banglaDate}
               </p>
             </div>
           </Link>
