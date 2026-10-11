@@ -43,12 +43,14 @@ function GithubIcon() {
 
 export default function SocialLoginButtons({
   disabled = false,
-  googleEnabled = false,
+  googleEnabled = true,
 }: {
   disabled?: boolean;
   googleEnabled?: boolean;
 }) {
-  const [pending, setPending] = useState<"github" | "google" | null>(null);
+  const [pending, setPending] = useState<"github" | "google" | null>(
+    null
+  );
 
   async function handleSocialLogin(provider: "github" | "google") {
     if (pending || disabled) return;
@@ -64,6 +66,15 @@ export default function SocialLoginButtons({
 
       if (result.error) {
         toast.error(result.error.message || "সাইন ইন করা যায়নি।");
+        setPending(null);
+        return;
+      }
+
+      // Redirect explicitly if the browser has not navigated yet.
+      if (result.data?.url) {
+        window.location.assign(result.data.url);
+      } else {
+        toast.error("লগইন লিংক পাওয়া যায়নি। আবার চেষ্টা করুন।");
         setPending(null);
       }
     } catch {
@@ -81,11 +92,12 @@ export default function SocialLoginButtons({
         type="button"
         disabled={disabled || !!pending || !googleEnabled}
         onClick={() => void handleSocialLogin("google")}
-        title={googleEnabled ? undefined : "Google লগইন সেটআপ বাকি"}
         className={buttonClass}
       >
         <GoogleIcon />
-        {pending === "google" ? "অপেক্ষা করুন..." : "Google দিয়ে চালিয়ে যান"}
+        {pending === "google"
+          ? "অপেক্ষা করুন..."
+          : "Google দিয়ে চালিয়ে যান"}
       </button>
 
       <button
@@ -95,7 +107,9 @@ export default function SocialLoginButtons({
         className={buttonClass}
       >
         <GithubIcon />
-        {pending === "github" ? "অপেক্ষা করুন..." : "GitHub দিয়ে চালিয়ে যান"}
+        {pending === "github"
+          ? "অপেক্ষা করুন..."
+          : "GitHub দিয়ে চালিয়ে যান"}
       </button>
     </div>
   );
