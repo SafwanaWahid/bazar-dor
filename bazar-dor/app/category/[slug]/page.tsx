@@ -12,7 +12,7 @@ type Product = {
   categoryNameBn: string;
   unit: string;
   image: string;
-  today: number;
+  today: number | string;
   change: {
     dir: "up" | "down" | "flat";
     pct: number;
@@ -52,36 +52,32 @@ const changeFormatter = new Intl.NumberFormat("bn-BD", {
   maximumFractionDigits: 1,
 });
 
-function BreadcrumbChevron() {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      className="shrink-0"
-    >
-      <path d="m9 6 6 6-6 6" />
-    </svg>
-  );
+function numericPrice(value: number | string) {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : 0;
+  }
+
+  const normalized = value
+    .replace(/[০-৯]/g, (digit) =>
+      String("০১২৩৪৫৬৭৮৯".indexOf(digit))
+    )
+    .replace(/[,，\s]/g, "");
+
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : 0;
 }
 
 function ProductCard({ product }: { product: Product }) {
   const direction = product.change.dir;
 
-  const changeStyle =
+  const badge =
     direction === "up"
       ? "bg-[#edf7ef] text-[#16a34a]"
       : direction === "down"
         ? "bg-[#fff1ef] text-[#ef4444]"
-        : "bg-[#f0f3f1] text-[#758078]";
+        : "bg-[#f0f3f1] text-[#68756c]";
 
-  const changeIcon =
+  const arrow =
     direction === "up" ? "▲" : direction === "down" ? "▼" : "—";
 
   return (
@@ -89,36 +85,41 @@ function ProductCard({ product }: { product: Product }) {
       href={`/product/${product.slug}`}
       className="group block rounded-2xl border border-[#e0e8e1] bg-[#fcfefc] p-4 transition-colors hover:border-[#b7d5bf] hover:bg-white"
     >
-      <div className="flex items-center gap-3">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#f0f5f1] text-[28px]">
+      <div className="flex items-center gap-2.5">
+        <span
+          aria-hidden="true"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#f0f5f1] text-[24px]"
+        >
           {product.image}
-        </div>
+        </span>
+
         <div className="min-w-0">
-          <h2 className="text-base leading-6 font-semibold text-[#253128] group-hover:text-[#008b3e]">
+          <h2 className="text-[15px] leading-5 font-semibold text-[#253128] group-hover:text-[#008b3e]">
             {product.nameBn}
           </h2>
-          <p className="text-[13px] leading-5 text-[#68756c]">
+
+          <p className="mt-0.5 text-[12px] leading-4 text-[#68756c]">
             {unitLabels[product.unit] || `প্রতি ${product.unit}`}
           </p>
         </div>
       </div>
 
-      <div className="mt-3 flex items-end justify-between gap-3">
+      <div className="mt-3 flex items-end justify-between gap-2">
         <div>
-          <p className="text-[12px] leading-5 text-[#768079]">
+          <p className="text-[11px] leading-4 text-[#768079]">
             আজকের দাম
           </p>
-          <p className="text-xl leading-7 font-bold text-[#253128]">
-            {numberFormatter.format(product.today)}
-            <span className="ml-1 text-sm font-normal">টাকা</span>
+
+          <p className="mt-0.5 text-[19px] leading-6 font-bold text-[#253128]">
+            {numberFormatter.format(numericPrice(product.today))}
+            <span className="ml-1 text-[12px] font-normal">টাকা</span>
           </p>
         </div>
 
         <span
-          className={`mb-0.5 shrink-0 rounded-full px-2.5 py-1 text-[12px] leading-4 font-semibold ${changeStyle}`}
+          className={`shrink-0 rounded-full px-2 py-1 text-[11px] leading-4 font-semibold ${badge}`}
         >
-          {changeIcon}{" "}
-          {changeFormatter.format(Math.abs(product.change.pct))}%
+          {arrow} {changeFormatter.format(Math.abs(product.change.pct))}%
         </span>
       </div>
     </Link>
@@ -128,27 +129,48 @@ function ProductCard({ product }: { product: Product }) {
 function ProductSkeleton() {
   return (
     <div className="animate-pulse rounded-2xl border border-[#e0e8e1] bg-[#fcfefc] p-4">
-      <div className="flex items-center gap-3">
-        <div className="h-12 w-12 shrink-0 rounded-xl bg-[#edf2ee]" />
+      <div className="flex items-center gap-2.5">
+        <div className="h-10 w-10 rounded-xl bg-[#e7eee8]" />
         <div>
-          <div className="h-4 w-24 rounded bg-[#edf2ee]" />
-          <div className="mt-2 h-3 w-16 rounded bg-[#edf2ee]" />
+          <div className="h-3.5 w-24 rounded bg-[#e7eee8]" />
+          <div className="mt-2 h-3 w-16 rounded bg-[#e7eee8]" />
         </div>
       </div>
+
       <div className="mt-3 flex items-end justify-between">
         <div>
-          <div className="h-3 w-16 rounded bg-[#edf2ee]" />
-          <div className="mt-2 h-5 w-20 rounded bg-[#edf2ee]" />
+          <div className="h-3 w-16 rounded bg-[#e7eee8]" />
+          <div className="mt-2 h-5 w-20 rounded bg-[#e7eee8]" />
         </div>
-        <div className="h-6 w-16 rounded-full bg-[#edf2ee]" />
+        <div className="h-6 w-14 rounded-full bg-[#e7eee8]" />
       </div>
     </div>
   );
 }
 
-export default function CategoryPage() {
-  const { slug } = useParams<{ slug: string }>();
-  const category = categories[slug];
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div className="rounded-2xl border border-[#e0e8e1] bg-[#fcfefc] px-5 py-12 text-center">
+      <p className="text-4xl font-bold text-[#008b3e]">৪০৪</p>
+
+      <h2 className="mt-3 text-lg font-semibold text-[#253128]">
+        {message}
+      </h2>
+
+      <Link
+        href="/"
+        className="mt-5 inline-flex min-h-10 items-center justify-center rounded-lg bg-[#008b3e] px-5 py-2 text-[13px] font-medium text-white hover:bg-[#007734]"
+      >
+        হোম পেজে ফিরে যান
+      </Link>
+    </div>
+  );
+}
+
+function CategoryContent({ slug }: { slug: string }) {
+  const category = Object.prototype.hasOwnProperty.call(categories, slug)
+    ? categories[slug]
+    : undefined;
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -164,9 +186,6 @@ export default function CategoryPage() {
     const timeout = window.setTimeout(() => controller.abort(), 25000);
 
     async function loadProducts() {
-      setLoading(true);
-      setError("");
-
       try {
         const response = await fetch("/api/products", {
           signal: controller.signal,
@@ -175,9 +194,7 @@ export default function CategoryPage() {
 
         if (!response.ok) {
           const details = await response.json().catch(() => null);
-          throw new Error(
-            details?.error || "পণ্যের দাম লোড করা যায়নি।"
-          );
+          throw new Error(details?.error || "পণ্যের দাম লোড করা যায়নি।");
         }
 
         const data = await response.json();
@@ -187,13 +204,13 @@ export default function CategoryPage() {
         }
 
         if (!cancelled) setProducts(data);
-      } catch (error) {
+      } catch (caughtError) {
         if (!cancelled) {
           setError(
             controller.signal.aborted
               ? "সার্ভার থেকে উত্তর পেতে বেশি সময় লাগছে। আবার চেষ্টা করুন।"
-              : error instanceof Error
-                ? error.message
+              : caughtError instanceof Error
+                ? caughtError.message
                 : "পণ্যের দাম লোড করা যায়নি।"
           );
         }
@@ -203,7 +220,7 @@ export default function CategoryPage() {
       }
     }
 
-    loadProducts();
+    void loadProducts();
 
     return () => {
       cancelled = true;
@@ -218,93 +235,111 @@ export default function CategoryPage() {
     );
 
     if (sortOrder === "low") {
-      filtered.sort((a, b) => a.today - b.today);
+      filtered.sort(
+        (a, b) => numericPrice(a.today) - numericPrice(b.today)
+      );
     } else if (sortOrder === "high") {
-      filtered.sort((a, b) => b.today - a.today);
+      filtered.sort(
+        (a, b) => numericPrice(b.today) - numericPrice(a.today)
+      );
     }
 
     return filtered;
   }, [products, slug, sortOrder]);
 
+  function retryProducts() {
+    setLoading(true);
+    setError("");
+    setAttempt((current) => current + 1);
+  }
+
   if (!category) {
     return (
-      <div className="site-container py-12 text-center">
-        <h1 className="text-xl font-semibold text-[#253128]">
-          এই ক্যাটাগরি পাওয়া যায়নি।
-        </h1>
-        <Link
-          href="/"
-          className="mt-4 inline-block rounded-lg bg-[#008b3e] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#007734]"
-        >
-          হোম পেজে ফিরে যান
-        </Link>
+      <div className="site-container py-8">
+        <EmptyState message="এই ক্যাটাগরি পাওয়া যায়নি।" />
       </div>
     );
   }
 
   return (
     <div className="site-container pt-6 pb-12">
-      <nav
-        aria-label="ব্রেডক্রাম্ব"
-        className="mb-5 flex items-center gap-3 text-sm leading-6 text-[#253128]"
-      >
-        <Link href="/" className="hover:text-[#008b3e]">
-          হোম
-        </Link>
-        <BreadcrumbChevron />
-        <span aria-current="page">{category.name}</span>
-      </nav>
-
-      <section className="rounded-[22px] border border-[#e0e8e1] bg-[#fcfefc] px-5 py-6 sm:px-7">
-        <div className="flex items-center gap-4">
-          <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[#e1f3e7] text-4xl">
+      <section className="rounded-2xl border border-[#e0e8e1] bg-[#fcfefc] px-5 py-5">
+        <div className="flex items-center gap-3">
+          <span aria-hidden="true" className="shrink-0 text-[32px]">
             {category.icon}
           </span>
+
           <div>
-            <h1 className="text-2xl leading-9 font-bold text-[#253128] sm:text-3xl">
-              {category.name}-এর আজকের বাজারদর
+            <h1 className="text-[24px] leading-8 font-bold text-[#253128]">
+              {category.name}
             </h1>
-            <p className="mt-1 text-sm leading-6 text-[#768079]">
-              পণ্যের বর্তমান দাম ও দামের পরিবর্তন দেখুন।
+
+            <p className="mt-0.5 text-[13px] leading-5 text-[#768079]">
+              {loading || error
+                ? "পণ্যের আজকের দাম ও পরিবর্তন"
+                : `${numberFormatter.format(
+                    visibleProducts.length
+                  )}টি পণ্যের আজকের দাম ও পরিবর্তন`}
             </p>
           </div>
         </div>
       </section>
 
-      <section className="mt-8">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <h2 className="text-xl font-semibold text-[#253128]">
-              সব পণ্য
-            </h2>
-            {!loading && !error && (
-              <span className="rounded-full bg-[#e5efe7] px-3 py-1 text-[13px] text-[#58715f]">
-                {numberFormatter.format(visibleProducts.length)}টি পণ্য
-              </span>
-            )}
-          </div>
-
+      <section aria-label={`${category.name} পণ্যের তালিকা`}>
+        <div className="mt-5 flex min-h-14 items-center justify-end rounded-2xl border border-[#e0e8e1] bg-[#fcfefc] px-4 py-3 sm:px-5">
           <div className="flex items-center gap-2">
             <label
               htmlFor="price-sort"
-              className="text-sm text-[#68756c]"
+              className="text-[13px] text-[#68756c]"
             >
               সাজান:
             </label>
-            <select
-              id="price-sort"
-              value={sortOrder}
-              onChange={(event) =>
-                setSortOrder(event.target.value as SortOrder)
-              }
-              className="rounded-lg border border-[#e0e8e1] bg-[#fcfefc] px-3 py-2 text-sm text-[#253128] outline-none focus:border-[#008b3e] focus:ring-2 focus:ring-[#008b3e]/20"
-            >
-              <option value="default">ডিফল্ট</option>
-              <option value="low">দাম: কম থেকে বেশি</option>
-              <option value="high">দাম: বেশি থেকে কম</option>
-            </select>
+
+            <div className="relative">
+              <select
+                id="price-sort"
+                value={sortOrder}
+                onChange={(event) =>
+                  setSortOrder(event.target.value as SortOrder)
+                }
+                disabled={loading || Boolean(error)}
+                className="min-h-9 max-w-[220px] appearance-none rounded-lg border border-[#dfe7e1] bg-[#fcfefc] py-1.5 pr-8 pl-3 text-[12px] text-[#253128] focus:border-[#008b3e] disabled:opacity-60"
+              >
+                <option value="default">ডিফল্ট</option>
+                <option value="low">দাম: কম থেকে বেশি</option>
+                <option value="high">দাম: বেশি থেকে কম</option>
+              </select>
+
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 20 20"
+                fill="none"
+                className="pointer-events-none absolute top-1/2 right-2 h-4 w-4 -translate-y-1/2 text-[#68756c]"
+              >
+                <path
+                  d="m6 8 4 4 4-4"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
           </div>
         </div>
+
+        <p
+          aria-live="polite"
+          className="mt-4 mb-3 text-[12px] text-[#68756c]"
+        >
+          {loading
+            ? "পণ্যের দাম লোড হচ্ছে..."
+            : error
+              ? "পণ্যের দাম লোড করা যায়নি।"
+              : `মোট ${numberFormatter.format(
+                  visibleProducts.length
+                )}টি পণ্য দেখানো হচ্ছে`}
+        </p>
 
         {error ? (
           <div
@@ -312,10 +347,11 @@ export default function CategoryPage() {
             className="rounded-2xl border border-[#e0e8e1] bg-[#fcfefc] px-5 py-10 text-center"
           >
             <p className="text-[#253128]">{error}</p>
+
             <button
               type="button"
-              onClick={() => setAttempt((current) => current + 1)}
-              className="mt-5 rounded-lg bg-[#008b3e] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#007734]"
+              onClick={retryProducts}
+              className="mt-5 rounded-lg bg-[#008b3e] px-5 py-2.5 text-sm text-white hover:bg-[#007734]"
             >
               আবার চেষ্টা করুন
             </button>
@@ -337,19 +373,15 @@ export default function CategoryPage() {
             ))}
           </div>
         ) : (
-          <div className="rounded-2xl border border-[#e0e8e1] bg-[#fcfefc] px-5 py-10 text-center">
-            <p className="text-[#68756c]">
-              এই ক্যাটাগরিতে কোনো পণ্য পাওয়া যায়নি।
-            </p>
-            <Link
-              href="/"
-              className="mt-4 inline-block rounded-lg bg-[#008b3e] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#007734]"
-            >
-              হোম পেজে ফিরে যান
-            </Link>
-          </div>
+          <EmptyState message="এই ক্যাটাগরিতে কোনো পণ্য পাওয়া যায়নি।" />
         )}
       </section>
     </div>
   );
+}
+
+export default function CategoryPage() {
+  const { slug } = useParams<{ slug: string }>();
+
+  return <CategoryContent key={slug} slug={slug} />;
 }
