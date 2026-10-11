@@ -8,7 +8,6 @@ import { authClient } from "@/lib/auth-client";
 
 function UpdateForm({ initialName }: { initialName: string }) {
   const router = useRouter();
-
   const [name, setName] = useState(initialName);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -30,13 +29,10 @@ function UpdateForm({ initialName }: { initialName: string }) {
     setBusy(true);
 
     try {
-      const result = await authClient.updateUser({
-        name: cleanName,
-      });
+      const result = await authClient.updateUser({ name: cleanName });
 
       if (result.error) {
-        const message =
-          result.error.message || "তথ্য আপডেট করা যায়নি।";
+        const message = result.error.message || "তথ্য আপডেট করা যায়নি।";
         setError(message);
         toast.error(message);
         return;
@@ -55,42 +51,47 @@ function UpdateForm({ initialName }: { initialName: string }) {
   }
 
   return (
-    <section className="mx-auto w-full max-w-lg px-4 py-12 sm:py-16">
-      <div className="rounded-2xl border border-[#e3ebe4] bg-white p-6 shadow-sm sm:p-8">
-        <h1 className="text-2xl font-bold text-[#202b22]">
-          তথ্য আপডেট করুন
-        </h1>
+    <section className="mx-auto w-full max-w-[680px] px-4 py-12 sm:py-16">
+      <h1 className="text-[24px] font-bold text-[#202b22]">
+        তথ্য আপডেট করুন
+      </h1>
 
-        <p className="mt-2 text-sm text-[#68736b]">
-          আপনার প্রোফাইলের নাম পরিবর্তন করুন।
-        </p>
+      <p className="mt-1 text-[13px] text-[#68736b]">
+        আপনার প্রোফাইলের নাম পরিবর্তন করুন।
+      </p>
 
-        <form onSubmit={handleSubmit} noValidate className="mt-7 space-y-5">
-          <div>
-            <label
-              htmlFor="name"
-              className="text-sm font-medium text-[#303a32]"
-            >
-              নাম
-            </label>
+      <div className="mt-6 rounded-2xl border border-[#e3ebe4] bg-[#fcfefc] p-5 sm:p-6">
+        <h2 className="text-[16px] font-semibold text-[#202b22]">
+          তথ্য
+        </h2>
 
-            <input
-              id="name"
-              name="name"
-              type="text"
-              autoComplete="name"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              disabled={busy}
-              required
-              className="mt-2 w-full rounded-xl border border-[#dfe7e1] px-4 py-3 text-sm outline-none transition focus:border-[#008b3e] focus:ring-2 focus:ring-[#008b3e]/10 disabled:opacity-60"
-            />
-          </div>
+        <form onSubmit={handleSubmit} noValidate className="mt-6">
+          <label
+            htmlFor="name"
+            className="text-[12px] font-medium text-[#39443b]"
+          >
+            নাম
+          </label>
+
+          <input
+            id="name"
+            name="name"
+            type="text"
+            autoComplete="name"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            disabled={busy}
+            required
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? "name-error" : undefined}
+            className="mt-2 block min-h-10 w-full rounded-lg border border-[#dfe7e1] bg-transparent px-3 py-2 text-[14px] text-[#303a32] focus:border-[#008b3e] disabled:opacity-60"
+          />
 
           {error && (
             <p
+              id="name-error"
               role="alert"
-              className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600"
+              className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600"
             >
               {error}
             </p>
@@ -100,7 +101,7 @@ function UpdateForm({ initialName }: { initialName: string }) {
             type="submit"
             disabled={busy}
             aria-busy={busy}
-            className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#008b3e] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#007734] disabled:cursor-wait disabled:opacity-60"
+            className="mt-4 flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#008b3e] px-4 py-2 text-[13px] font-semibold text-white shadow-sm hover:bg-[#007734] disabled:cursor-wait disabled:opacity-60"
           >
             {busy && (
               <span
@@ -108,18 +109,17 @@ function UpdateForm({ initialName }: { initialName: string }) {
                 className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"
               />
             )}
-
             {busy ? "আপডেট হচ্ছে..." : "তথ্য আপডেট করুন"}
           </button>
         </form>
-
-        <Link
-          href="/profile"
-          className="mt-5 block text-center text-sm text-[#68736b] hover:text-[#008b3e]"
-        >
-          প্রোফাইলে ফিরে যান
-        </Link>
       </div>
+
+      <Link
+        href="/profile"
+        className="mt-5 inline-flex text-[13px] text-[#68736b] hover:text-[#008b3e]"
+      >
+        ← প্রোফাইলে ফিরে যান
+      </Link>
     </section>
   );
 }
@@ -133,9 +133,10 @@ export default function UpdateProfilePage() {
       <div
         role="status"
         aria-label="তথ্য লোড হচ্ছে"
-        className="mx-auto max-w-lg animate-pulse px-4 py-16"
+        className="mx-auto w-full max-w-[680px] animate-pulse px-4 py-12 sm:py-16"
       >
-        <div className="h-72 rounded-2xl bg-[#e7eee8]" />
+        <div className="h-6 w-40 rounded bg-[#e7eee8]" />
+        <div className="mt-6 h-52 rounded-2xl bg-[#e7eee8]" />
       </div>
     );
   }
@@ -143,7 +144,9 @@ export default function UpdateProfilePage() {
   if (error) {
     return (
       <div className="px-4 py-16 text-center">
-        <p className="text-red-600">তথ্য লোড করা যায়নি।</p>
+        <p role="alert" className="text-red-600">
+          তথ্য লোড করা যায়নি।
+        </p>
         <button
           type="button"
           onClick={() => void refetch()}
@@ -166,9 +169,6 @@ export default function UpdateProfilePage() {
   }
 
   return (
-    <UpdateForm
-      key={session.user.id}
-      initialName={session.user.name}
-    />
+    <UpdateForm key={session.user.id} initialName={session.user.name} />
   );
 }

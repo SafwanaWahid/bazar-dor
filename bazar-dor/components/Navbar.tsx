@@ -1,8 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useSyncExternalStore } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import toast from "react-hot-toast";
 import { authClient } from "@/lib/auth-client";
 
@@ -95,6 +96,34 @@ function getServerDateSnapshot() {
   return "প্রয়োজনীয় পণ্যের দাম এক নজরে";
 }
 
+function UserAvatar({
+  name,
+  image,
+}: {
+  name: string;
+  image?: string | null;
+}) {
+  const [imageFailed, setImageFailed] = useState(false);
+
+  return (
+    <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#e5f3e9] text-sm font-bold text-[#008b3e]">
+      {image && !imageFailed ? (
+        <Image
+          src={image}
+          alt=""
+          width={32}
+          height={32}
+          unoptimized
+          onError={() => setImageFailed(true)}
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        name.trim().charAt(0).toUpperCase() || "U"
+      )}
+    </span>
+  );
+}
+
 function MarketItems({ duplicate = false }: { duplicate?: boolean }) {
   return (
     <div
@@ -104,14 +133,12 @@ function MarketItems({ duplicate = false }: { duplicate?: boolean }) {
       {marketItems.map((item) => (
         <div
           key={item.name}
-          className="flex h-9 shrink-0 items-center gap-1.5 px-5 text-[13px] whitespace-nowrap"
+          className="flex h-8 shrink-0 items-center gap-1.5 px-4 text-[12px] whitespace-nowrap"
         >
-          <span>{item.icon}</span>
+          <span aria-hidden="true">{item.icon}</span>
 
-          <span className="text-[#303a32]">{item.name}</span>
-
-          <span className="text-[#303a32]">
-            {item.price} টাকা/{item.unit}
+          <span className="text-[#39443b]">
+            {item.name} {item.price} টাকা/{item.unit}
           </span>
 
           <span
@@ -131,6 +158,8 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
+  const menuRef = useRef<HTMLDetailsElement>(null);
+  const [signingOut, setSigningOut] = useState(false);
 
   const banglaDate = useSyncExternalStore(
     subscribeToDate,
@@ -138,7 +167,11 @@ export default function Navbar() {
     getServerDateSnapshot
   );
 
-  const [signingOut, setSigningOut] = useState(false);
+  function closeMenu() {
+    if (menuRef.current) {
+      menuRef.current.open = false;
+    }
+  }
 
   async function handleSignOut() {
     if (signingOut) return;
@@ -153,6 +186,7 @@ export default function Navbar() {
         return;
       }
 
+      closeMenu();
       toast.success("সফলভাবে সাইন আউট হয়েছে।");
       router.replace("/");
       router.refresh();
@@ -164,12 +198,13 @@ export default function Navbar() {
   }
 
   return (
-    <header className="border-b border-[#e3ebe4] bg-[#fcfefc]">
+    <header className="relative z-30 border-b border-[#e3ebe4] bg-[#fcfefc]">
       <div className="site-container">
-        <div className="flex min-h-[68px] flex-wrap items-center justify-between gap-3 py-3">
+        <div className="flex min-h-[68px] items-center justify-between gap-3 py-3">
           <Link
             href="/"
-            className="flex min-w-0 items-center gap-2.5"
+            onClick={closeMenu}
+            className="flex min-w-0 items-center gap-2"
             aria-label="বাজার দর হোম পেজ"
           >
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#008b3e] text-xl">
@@ -177,65 +212,123 @@ export default function Navbar() {
             </span>
 
             <div className="min-w-0">
-              <p className="text-[21px] leading-6 font-bold tracking-tight text-[#202b22]">
+              <p className="text-[20px] leading-6 font-bold text-[#202b22]">
                 বাজার দর
               </p>
 
-              <p className="mt-0.5 text-[12px] leading-4 text-[#616b62]">
+              <p className="mt-0.5 text-[11px] leading-4 text-[#616b62]">
                 {banglaDate}
               </p>
             </div>
           </Link>
 
-          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+          <div className="shrink-0">
             {isPending ? (
-              <div role="status" aria-label="অ্যাকাউন্ট তথ্য লোড হচ্ছে">
-                <div className="flex animate-pulse gap-2">
-                  <span className="h-9 w-16 rounded-lg bg-[#e7eee8]" />
-                  <span className="h-9 w-20 rounded-lg bg-[#e7eee8]" />
-                </div>
+              <div
+                role="status"
+                aria-label="অ্যাকাউন্ট তথ্য লোড হচ্ছে"
+                className="flex animate-pulse items-center gap-2"
+              >
+                <span className="h-8 w-8 rounded-lg bg-[#e7eee8]" />
+                <span className="h-3 w-12 rounded bg-[#e7eee8]" />
               </div>
             ) : session ? (
-              <>
-                <Link
-                  href="/profile"
-                  title={session.user.name}
-                  className="flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-[13px] font-medium text-[#008b3e] transition-colors hover:bg-[#edf6ef] sm:px-4 sm:text-sm"
-                >
-                  <span
-                    aria-hidden="true"
-                    className="flex h-6 w-6 items-center justify-center rounded-full bg-[#e3f2e7] text-xs font-bold"
-                  >
-                    {session.user.name?.trim().charAt(0).toUpperCase() || "U"}
-                  </span>
-                  প্রোফাইল
-                </Link>
+              <details
+                ref={menuRef}
+                className="profile-menu relative"
+                onKeyDown={(event) => {
+                  if (event.key === "Escape") {
+                    closeMenu();
+                    menuRef.current
+                      ?.querySelector<HTMLElement>("summary")
+                      ?.focus();
+                  }
+                }}
+                onBlur={(event) => {
+                  const nextTarget = event.relatedTarget as Node | null;
 
-                <button
-                  type="button"
-                  onClick={handleSignOut}
-                  disabled={signingOut}
-                  className="rounded-lg bg-[#008b3e] px-3 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#007734] disabled:cursor-wait disabled:opacity-60 sm:px-4 sm:text-sm"
+                  if (!event.currentTarget.contains(nextTarget)) {
+                    closeMenu();
+                  }
+                }}
+              >
+                <summary
+                  aria-label="অ্যাকাউন্ট মেনু"
+                  className="flex cursor-pointer items-center gap-2 rounded-lg px-1.5 py-1 text-[13px] text-[#303a32] hover:bg-[#edf6ef]"
                 >
-                  {signingOut ? "অপেক্ষা করুন..." : "সাইন আউট"}
-                </button>
-              </>
+                  <UserAvatar
+                    key={session.user.image || "initial"}
+                    name={session.user.name}
+                    image={session.user.image}
+                  />
+
+                  <span className="max-w-20 truncate sm:max-w-32">
+                    {session.user.name.trim().split(/\s+/)[0] || "অ্যাকাউন্ট"}
+                  </span>
+
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    className="h-3.5 w-3.5"
+                  >
+                    <path
+                      d="m6 8 4 4 4-4"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </summary>
+
+                <div className="absolute right-0 top-full z-50 mt-2 w-60 max-w-[calc(100vw-28px)] rounded-2xl border border-[#e3ebe4] bg-[#fcfefc] p-4 shadow-lg">
+                  <p className="break-words text-sm font-semibold text-[#202b22]">
+                    {session.user.name}
+                  </p>
+
+                  <p className="mt-0.5 break-all text-xs text-[#68736b]">
+                    {session.user.email}
+                  </p>
+
+                  <div className="mt-3 space-y-1">
+                    <Link
+                      href="/profile"
+                      onClick={closeMenu}
+                      className="flex items-center gap-2 rounded-lg px-2 py-2 text-[13px] text-[#39443b] hover:bg-[#edf6ef]"
+                    >
+                      <span aria-hidden="true">👤</span>
+                      আমার প্রোফাইল
+                    </Link>
+
+                    <button
+                      type="button"
+                      onClick={handleSignOut}
+                      disabled={signingOut}
+                      className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-[13px] text-[#ef4444] hover:bg-[#fff1f1] disabled:cursor-wait disabled:opacity-60"
+                    >
+                      <span aria-hidden="true">↪</span>
+                      {signingOut ? "অপেক্ষা করুন..." : "সাইন আউট"}
+                    </button>
+                  </div>
+                </div>
+              </details>
             ) : (
-              <>
+              <div className="flex items-center gap-1 sm:gap-2">
                 <Link
                   href="/signin"
-                  className="rounded-lg px-2.5 py-2 text-[13px] font-medium text-[#008b3e] transition-colors hover:bg-[#edf6ef] sm:px-4 sm:text-sm"
+                  className="rounded-lg px-2 py-2 text-[13px] font-medium text-[#008b3e] hover:bg-[#edf6ef] sm:px-3"
                 >
                   সাইন ইন
                 </Link>
 
                 <Link
                   href="/signup"
-                  className="rounded-lg bg-[#008b3e] px-3 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#007734] sm:px-4 sm:text-sm"
+                  className="rounded-lg bg-[#008b3e] px-3 py-2 text-[13px] font-medium text-white hover:bg-[#007734]"
                 >
                   সাইন আপ
                 </Link>
-              </>
+              </div>
             )}
           </div>
         </div>
@@ -243,10 +336,10 @@ export default function Navbar() {
 
       <nav
         aria-label="পণ্য ক্যাটাগরি"
-        className="border-y border-[#f0f3f0]"
+        className="border-y border-[#eef3ef]"
       >
         <div className="site-container">
-          <div className="scrollbar-hide flex min-h-11 items-center gap-6 overflow-x-auto sm:gap-8">
+          <div className="scrollbar-hide flex min-h-11 items-center gap-2 overflow-x-auto py-1 sm:gap-3">
             {categories.map((category) => {
               const active =
                 pathname === category.href ||
@@ -256,14 +349,18 @@ export default function Navbar() {
                 <Link
                   key={category.href}
                   href={category.href}
+                  onClick={closeMenu}
                   aria-current={active ? "page" : undefined}
-                  className={`flex min-h-11 shrink-0 items-center gap-2 border-b-2 text-[13px] font-medium transition-colors ${
+                  className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-1.5 text-[12px] font-medium transition-colors ${
                     active
-                      ? "border-[#008b3e] text-[#008b3e]"
-                      : "border-transparent text-[#39443b] hover:text-[#008b3e]"
+                      ? "bg-[#008b3e] text-white"
+                      : "text-[#39443b] hover:bg-[#edf6ef] hover:text-[#008b3e]"
                   }`}
                 >
-                  <span className="text-sm">{category.icon}</span>
+                  <span aria-hidden="true" className="text-[12px]">
+                    {category.icon}
+                  </span>
+
                   <span>{category.name}</span>
                 </Link>
               );
@@ -272,7 +369,7 @@ export default function Navbar() {
         </div>
       </nav>
 
-      <div className="market-ticker overflow-hidden">
+      <div className="market-ticker overflow-hidden bg-[#fcfefc]">
         <div className="market-track">
           <MarketItems />
           <MarketItems duplicate />

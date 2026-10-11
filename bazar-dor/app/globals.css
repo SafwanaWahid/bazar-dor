@@ -17,6 +17,7 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 24px;
 }
 
 body {
@@ -43,7 +44,8 @@ a:focus-visible,
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
-textarea:focus-visible {
+textarea:focus-visible,
+summary:focus-visible {
   outline: 2px solid #008b3e;
   outline-offset: 4px;
 }
@@ -62,6 +64,14 @@ textarea:focus-visible {
   display: none;
 }
 
+.profile-menu > summary {
+  list-style: none;
+}
+
+.profile-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
 .market-track {
   display: flex;
   width: max-content;
@@ -69,7 +79,8 @@ textarea:focus-visible {
   will-change: transform;
 }
 
-.market-ticker:hover .market-track {
+.market-ticker:hover .market-track,
+.market-ticker:focus-within .market-track {
   animation-play-state: paused;
 }
 
